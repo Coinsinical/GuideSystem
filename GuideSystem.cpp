@@ -5,7 +5,9 @@
 #include <queue>
 #include <climits>
 #include <iostream>
+#include <fstream>
 #include <sstream>
+#include <string>
 using namespace std;
 
 #define WIDTH 800
@@ -65,6 +67,12 @@ public:
 	vector<Spot> spots; //多个景点
 	vector<Spot> spots_temp;//在最短路径上的点
 	vector<vector<Edge>> adjacencyList;//邻接表
+
+	float data_1[14][2];
+	float data_2[15][3];
+	string str1[15], str2[15], str3[15];
+	wchar_t wstr[3][128];
+
 	int status = 0;//是否需要高亮绘制最短路径
 	wstring info = L"最短路径：";
 	wstring info_2 = L"最短路径长度：";
@@ -74,50 +82,19 @@ public:
 	{
 		loadimage(&im_map, _T("map.jpg")); // 导入地图图片
 
+		readRecordFile();
+
 		// 初始化景点
 		Spot spot;
-		spot.initialize(110, 180, false, L"茅山风景区", L"SP1", L"茅山风景区很好玩！");
-		spots.push_back(spot);
 
-		spot.initialize(120, 360, false, L"新四军江南指挥部纪念馆", L"SP2", L"新四军江南指挥部纪念馆很好玩！");
-		spots.push_back(spot);
+		for (int i = 0; i <= 13; i++) {
+			MultiByteToWideChar(CP_UTF8, 0, str1[i].c_str(), -1, wstr[0], 128);
+			MultiByteToWideChar(CP_UTF8, 0, str2[i].c_str(), -1, wstr[1], 128);
+			MultiByteToWideChar(CP_UTF8, 0, str3[i].c_str(), -1, wstr[2], 128);
 
-		spot.initialize(150, 240, false, L"银丝面", L"SP3", L"银丝面很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(220, 560, false, L"南山竹海", L"SP4", L"南山竹海很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(155, 480, false, L"报恩禅寺", L"SP5", L"报恩禅寺很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(175, 480, false, L"天目湖度假区", L"SP6", L"天目湖度假区很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(240, 335, false, L"中华曙猿地质公园", L"SP7", L"中华曙猿地质公园很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(250, 215, false, L"愚池公园", L"SP8", L"愚池公园很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(425, 240, false, L"中国春秋淹城旅游区", L"SP9", L"中国春秋淹城旅游区很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(355, 135, false, L"中国大运河", L"SP10", L"中国大运河很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(450, 165, false, L"常州博物馆", L"SP11", L"常州博物馆很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(465, 160, false, L"环城恐龙园", L"SP12", L"环城恐龙园很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(460, 175, false, L"红梅公园", L"SP13", L"红梅公园很好玩！");
-		spots.push_back(spot);
-
-		spot.initialize(505, 370, false, L"环球动漫嬉戏谷", L"SP14", L"环球动漫嬉戏谷很好玩！");
-		spots.push_back(spot);
-
+			spot.initialize(data_1[i][0], data_1[i][1], false, wstr[0], wstr[1], wstr[2]);
+			spots.push_back(spot);
+		}
 		adjacencyList.resize(spots.size());
 	}
 
@@ -214,7 +191,6 @@ public:
 			MessageBox(GetHWnd(), L"无法从起点到达目的地", L"提示", MB_ICONERROR | MB_OK);
 		}
 		else {
-			//wstring info = L"最短路径：";
 			wostringstream oss;
 			oss << distance[destination];
 			wstring wstr = oss.str();
@@ -232,10 +208,7 @@ public:
 				if (i > 0)
 					info += L" -> ";
 			}
-
-			//info += L"\n\n";
 			info_2 += wstr;
-			/*MessageBoxW(GetHWnd(), info.c_str(), L"问路查询", MB_OK);*/
 		}
 	}
 
@@ -248,6 +221,22 @@ public:
 		}
 		return Spot();
 	}
+
+	void readRecordFile()  //读取游戏数据文件存档
+	{
+		ifstream ifs("data.txt");
+
+		char c[100];
+		for (int i = 0; i <= 13; i++) {
+			ifs >> data_1[i][0] >> data_1[i][1] >> str1[i] >> str2[i] >> str3[i];
+		}
+		for (int i = 0; i <= 14; i++) {
+			ifs >> data_2[i][0] >> data_2[i][1] >> data_2[i][2];
+		}
+		// 关闭文件
+		ifs.close();
+	}
+
 };
 
 // 一些全局变量
@@ -257,21 +246,9 @@ Map map; // 定义地图全局对象
 void startup() // 初始化
 {
 	map.initialize(); // 地图初始化
-	map.addEdge(0, 1, 10);   // 添加从景点0到景点1的边，长度为10
-	map.addEdge(1, 2, 5);    // 添加从景点1到景点2的边，长度为5
-	map.addEdge(0, 2, 20);   // 添加从景点0到景点2的边，长度为20
-	map.addEdge(2, 3, 15);   // 添加从景点2到景点3的边，长度为15
-	map.addEdge(3, 4, 8);
-	map.addEdge(4, 5, 12);
-	map.addEdge(5, 6, 6);
-	map.addEdge(6, 7, 7);
-	map.addEdge(7, 8, 9);
-	map.addEdge(8, 9, 11);
-	map.addEdge(9, 10, 14);
-	map.addEdge(10, 11, 10);
-	map.addEdge(11, 12, 16);
-	map.addEdge(12, 13, 18);
-	map.addEdge(13, 0, 22);
+	for (int i = 0; i <= 14; i++) {
+		map.addEdge(map.data_2[i][0], map.data_2[i][1], map.data_2[i][2]);
+	}
 	initgraph(WIDTH, HEIGHT); // 新开一个画面
 	setbkcolor(RGB(241, 236, 243)); // 设置背景颜色
 	BeginBatchDraw(); // 开始批量绘制
@@ -320,63 +297,21 @@ void updateWithInput() // 和输入有关的更新
 				InputBox(input2, 400, L"请输入终点", L"终点", L"", 480, 0, false);
 				int destination = -1, source = -1;
 
-				if (wcscmp(input1, L"茅山风景区") == 0)
-					source = 0;
-				else if (wcscmp(input1, L"新四军江南指挥部纪念馆") == 0)
-					source = 1;
-				else if (wcscmp(input1, L"银丝面") == 0)
-					source = 2;
-				else if (wcscmp(input1, L"南山竹海") == 0)
-					source = 3;
-				else if (wcscmp(input1, L"报恩禅寺") == 0)
-					source = 4;
-				else if (wcscmp(input1, L"天目湖度假区") == 0)
-					source = 5;
-				else if (wcscmp(input1, L"中华曙猿地质公园") == 0)
-					source = 6;
-				else if (wcscmp(input1, L"愚池公园") == 0)
-					source = 7;
-				else if (wcscmp(input1, L"中国春秋淹城旅游区") == 0)
-					source = 8;
-				else if (wcscmp(input1, L"中国大运河") == 0)
-					source = 9;
-				else if (wcscmp(input1, L"常州博物馆") == 0)
-					source = 10;
-				else if (wcscmp(input1, L"环城恐龙园") == 0)
-					source = 11;
-				else if (wcscmp(input1, L"红梅公园") == 0)
-					source = 12;
-				else if (wcscmp(input1, L"环球动漫嬉戏谷") == 0)
-					source = 13;
+				for (int i = 0; i <= 13; i++) {
+					MultiByteToWideChar(CP_UTF8, 0, map.str1[i].c_str(), -1, map.wstr[0], 128);
+					if (wcscmp(input1, map.wstr[0]) == 0) {
+						source = i;
+						break;
+					}
+				}
 
-				if (wcscmp(input2, L"茅山风景区") == 0)
-					destination = 0;
-				else if (wcscmp(input2, L"新四军江南指挥部纪念馆") == 0)
-					destination = 1;
-				else if (wcscmp(input2, L"银丝面") == 0)
-					destination = 2;
-				else if (wcscmp(input2, L"南山竹海") == 0)
-					destination = 3;
-				else if (wcscmp(input2, L"报恩禅寺") == 0)
-					destination = 4;
-				else if (wcscmp(input2, L"天目湖度假区") == 0)
-					destination = 5;
-				else if (wcscmp(input2, L"中华曙猿地质公园") == 0)
-					destination = 6;
-				else if (wcscmp(input2, L"愚池公园") == 0)
-					destination = 7;
-				else if (wcscmp(input2, L"中国春秋淹城旅游区") == 0)
-					destination = 8;
-				else if (wcscmp(input2, L"中国大运河") == 0)
-					destination = 9;
-				else if (wcscmp(input2, L"常州博物馆") == 0)
-					destination = 10;
-				else if (wcscmp(input2, L"环城恐龙园") == 0)
-					destination = 11;
-				else if (wcscmp(input2, L"红梅公园") == 0)
-					destination = 12;
-				else if (wcscmp(input2, L"环球动漫嬉戏谷") == 0)
-					destination = 13;
+				for (int i = 0; i <= 13; i++) {
+					MultiByteToWideChar(CP_UTF8, 0, map.str1[i].c_str(), -1, map.wstr[0], 128);
+					if (wcscmp(input2, map.wstr[0]) == 0) {
+						destination = i;
+						break;
+					}
+				}
 
 				if (source == -1 || destination == -1) {
 					MessageBox(GetHWnd(), L"你输的是啥呀", L"出错了！", MB_ICONINFORMATION | MB_OK);
